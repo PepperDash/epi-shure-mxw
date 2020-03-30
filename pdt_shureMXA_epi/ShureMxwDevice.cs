@@ -27,20 +27,29 @@ namespace pdt_shureMXA_epi
 
         public Properties _Props { get; set; }
 
-        public List<IntFeedback> MicStatusFeedback;
-        public List<int> MicStatus;
+        public Dictionary<int, bool> MicEnable;
+        public Dictionary<int, BoolFeedback> MicEnableFeedback;
 
-        public List<IntFeedback> MicBatteryLevelFeedback;
-        public List<int> MicBatteryLevel;
+        public Dictionary<int, IntFeedback> MicStatusFeedback;
+        public Dictionary<int, int> MicStatus;
 
-        public List<BoolFeedback> MicLowBatteryCautionFeedback;
-        public List<bool> MicLowBatteryCaution;
+        public Dictionary<int, IntFeedback> MicBatteryLevelFeedback;
+        public Dictionary<int, int> MicBatteryLevel;
 
-        public List<BoolFeedback> MicLowBatteryWarningFeedback;
-        public List<bool> MicLowBatteryWarning;
+        public Dictionary<int, BoolFeedback> MicLowBatteryCautionFeedback;
+        public Dictionary<int, bool> MicLowBatteryCaution;
 
-        public List<IntFeedback> MicLowBatteryStatusFeedback;
-        public List<int> MicLowBatteryStatus;
+        public Dictionary<int, BoolFeedback> MicLowBatteryWarningFeedback;
+        public Dictionary<int, bool> MicLowBatteryWarning;
+
+        public Dictionary<int, IntFeedback> MicLowBatteryStatusFeedback;
+        public Dictionary<int, int> MicLowBatteryStatus;
+
+        public Dictionary<int, BoolFeedback> MicOnChargerFeedback;
+        public Dictionary<int, bool> MicOnCharger;
+
+        public Dictionary<int, StringFeedback> MicNamesFeedback;
+        public Dictionary<int, string> MicNames;
 
         public CTimer Poll;
 
@@ -117,67 +126,68 @@ namespace pdt_shureMXA_epi
             PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(PortGather_LineReceived);
 
             CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 15000, 180000, 300000, DoPoll);
+
+            Init();
         }
 
-        public override bool CustomActivate()
+        private void Init()
         {
-            
+            MicEnable = new Dictionary<int, bool>();
+            MicEnableFeedback = new Dictionary<int, BoolFeedback>();
 
-            MicStatus = new List<int>();
-            MicStatusFeedback = new List<IntFeedback>();
+            MicStatus = new Dictionary<int, int>();
+            MicStatusFeedback = new Dictionary<int, IntFeedback>();
 
-            MicBatteryLevel = new List<int>();
-            MicBatteryLevelFeedback = new List<IntFeedback>();
+            MicBatteryLevel = new Dictionary<int, int>();
+            MicBatteryLevelFeedback = new Dictionary<int, IntFeedback>();
 
-            MicLowBatteryCaution = new List<bool>();
-            MicLowBatteryCautionFeedback = new List<BoolFeedback>();
+            MicLowBatteryCaution = new Dictionary<int, bool>();
+            MicLowBatteryCautionFeedback = new Dictionary<int, BoolFeedback>();
 
-            MicLowBatteryWarning = new List<bool>();
-            MicLowBatteryWarningFeedback = new List<BoolFeedback>();
+            MicLowBatteryWarning = new Dictionary<int, bool>();
+            MicLowBatteryWarningFeedback = new Dictionary<int, BoolFeedback>();
 
-            MicLowBatteryStatus = new List<int>();
-            MicLowBatteryStatusFeedback = new List<IntFeedback>();
+            MicLowBatteryStatus = new Dictionary<int,int>();
+            MicLowBatteryStatusFeedback = new Dictionary<int, IntFeedback>();
 
-            MicStatus.Add(0);
-            MicStatusFeedback.Add(new IntFeedback(() => MicStatus[0]));
+            MicOnCharger = new Dictionary<int, bool>();
+            MicOnChargerFeedback = new Dictionary<int, BoolFeedback>();
 
-            MicBatteryLevel.Add(0);
-            MicBatteryLevelFeedback.Add(new IntFeedback(() => MicBatteryLevel[0]));
-
-            MicLowBatteryCaution.Add(false);
-            MicLowBatteryCautionFeedback.Add(new BoolFeedback(() => MicLowBatteryCaution[0]));
-
-            MicLowBatteryWarning.Add(false);
-            MicLowBatteryWarningFeedback.Add(new BoolFeedback(() => MicLowBatteryWarning[0]));
-
-            MicLowBatteryStatus.Add(0);
-            MicLowBatteryStatusFeedback.Add(new IntFeedback(() => MicLowBatteryStatus[0]));
+            MicNames = new Dictionary<int, string>();
+            MicNamesFeedback = new Dictionary<int, StringFeedback>();
 
             foreach (var item in _Props.Mics)
             {
                 var i = item;
                 Debug.Console(2, this, "This Mic's name is {0}", i.name);
 
-                MicStatus.Insert(i.index, 0);
-                MicStatusFeedback.Insert(i.index, new IntFeedback(() => MicStatus[i.index]));
+                MicStatus.Add(i.index, 0);
+                MicStatusFeedback.Add(i.index, new IntFeedback(() => MicStatus[i.index]));
 
-                MicBatteryLevel.Insert(i.index, 0);
-                MicBatteryLevelFeedback.Insert(i.index, new IntFeedback(() => MicBatteryLevel[i.index]));
+                MicBatteryLevel.Add(i.index, 0);
+                MicBatteryLevelFeedback.Add(i.index, new IntFeedback(() => MicBatteryLevel[i.index]));
 
-                MicLowBatteryCaution.Insert(i.index, false);
-                MicLowBatteryCautionFeedback.Insert(i.index, new BoolFeedback(() => MicLowBatteryCaution[i.index]));
+                MicLowBatteryCaution.Add(i.index, false);
+                MicLowBatteryCautionFeedback.Add(i.index, new BoolFeedback(() => MicLowBatteryCaution[i.index]));
 
-                MicLowBatteryWarning.Insert(i.index, false);
-                MicLowBatteryWarningFeedback.Insert(i.index, new BoolFeedback(() => MicLowBatteryWarning[i.index]));
+                MicLowBatteryWarning.Add(i.index, false);
+                MicLowBatteryWarningFeedback.Add(i.index, new BoolFeedback(() => MicLowBatteryWarning[i.index]));
 
-                MicLowBatteryStatus.Insert(i.index, 0);
-                MicLowBatteryStatusFeedback.Insert(i.index, new IntFeedback(() => MicLowBatteryStatus[i.index]));
+                MicLowBatteryStatus.Add(i.index, 0);
+                MicLowBatteryStatusFeedback.Add(i.index, new IntFeedback(() => MicLowBatteryStatus[i.index]));
+
+                MicOnCharger.Add(i.index, false);
+                MicOnChargerFeedback.Add(i.index, new BoolFeedback(() => MicOnCharger[i.index]));
+
+                MicNames.Add(i.index, i.name);
+                MicNamesFeedback.Add(i.index, new StringFeedback(() => MicNames[i.index]));
+
+                MicEnable.Add(i.index, false);
+                MicEnableFeedback.Add(i.index, new BoolFeedback(() => MicEnable[i.index]));
             }
 
             Communication.Connect();
             CommunicationMonitor.Start();
-
-            return true;
         }
 
         void PortGather_LineReceived(object sender, GenericCommMethodReceiveTextArgs args)
@@ -199,19 +209,32 @@ namespace pdt_shureMXA_epi
                     if (attribute == "TX_STATUS")
                     {
                         int Status = (int)Enum.Parse(typeof(Tx_Status), DataChunks[4], true);
-                        MicStatus.Insert(index, Status);
+                        MicStatus[index] = Status;
                         MicStatusFeedback[index].FireUpdate();
+                        MicOnCharger[index] = (Status == (int)Tx_Status.ON_CHARGER ? true : false);
+                        MicOnChargerFeedback[index].FireUpdate();
+                        MicNamesFeedback[index].FireUpdate();
+
+
                     }
                     if (attribute == "BATT_CHARGE")
                     {
                         if (int.Parse(DataChunks[4]) != 255)
                         {
                             var Status = (int)((long.Parse(DataChunks[4]) * 65535) / 100);
-                            MicBatteryLevel.Insert(index, Status);
+                            MicBatteryLevel[index] = Status;
                             MicBatteryLevelFeedback[index].FireUpdate();
                             UpdateAlert(index);
+                            MicNamesFeedback[index].FireUpdate();
+
                         }
                     }
+                }
+                foreach (var item in _Props.Mics)
+                {
+                    var i = item;
+                    MicNamesFeedback[i.index].FireUpdate();
+                    MicEnableFeedback[i.index].FireUpdate();
                 }
             }
             catch (Exception e)
@@ -222,7 +245,14 @@ namespace pdt_shureMXA_epi
 
         private void UpdateAlert(int data)
         {
-            if (MicStatus[data] != 4 && MicStatus[data] != 5)
+            if (MicStatus[data] == (int)Tx_Status.ON_CHARGER)
+            {
+                MicLowBatteryCaution[data] = false;
+                MicLowBatteryWarning[data] = false;
+                MicLowBatteryStatus[data] = 0; 
+            }
+
+            else if (MicStatus[data] != (int)Tx_Status.UNKNOWN)
             {
                 if (MicBatteryLevel[data] <= WarningThreshold)
                 {
@@ -237,17 +267,18 @@ namespace pdt_shureMXA_epi
                     MicLowBatteryCaution[data] = true;
                     MicLowBatteryStatus[data] = 1;
                 }
-                else {
+                else
+                {
                     MicLowBatteryCaution[data] = false;
                     MicLowBatteryWarning[data] = false;
                     MicLowBatteryStatus[data] = 0;
                 }
-
-                MicLowBatteryCautionFeedback[data].FireUpdate();
-                MicLowBatteryWarningFeedback[data].FireUpdate();
-                MicLowBatteryStatusFeedback[data].FireUpdate();
-
             }
+
+            MicLowBatteryCautionFeedback[data].FireUpdate();
+            MicLowBatteryWarningFeedback[data].FireUpdate();
+            MicLowBatteryStatusFeedback[data].FireUpdate();
+            MicNamesFeedback[data].FireUpdate();
         }
 
         public void SetStatus(int data)

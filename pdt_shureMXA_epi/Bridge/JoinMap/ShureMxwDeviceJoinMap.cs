@@ -15,6 +15,7 @@ namespace pdt_shureMXA_epi.Bridge.JoinMap
         public uint Enabled { get; set; }
         public uint LowBatteryCaution { get; set; }
         public uint LowBatteryWarning { get; set; }
+        public uint OnCharger { get; set; }
 
         #endregion
 
@@ -37,6 +38,7 @@ namespace pdt_shureMXA_epi.Bridge.JoinMap
             Enabled = 2;
             LowBatteryCaution = 3;
             LowBatteryWarning = 4;
+            OnCharger = 5;
             Name = 2;
             SetLocalStatus = 2;
             LocalStatus = 2;

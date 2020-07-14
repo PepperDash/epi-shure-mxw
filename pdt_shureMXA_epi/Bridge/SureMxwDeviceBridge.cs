@@ -69,23 +69,19 @@ namespace pdt_shureMXA_epi.Bridge
 
             }
 
-            trilist.OnlineStatusChange += new Crestron.SimplSharpPro.OnlineStatusChangeEventHandler((d, args) =>
+            trilist.OnlineStatusChange += (d, args) =>
             {
-                if (args.DeviceOnLine)
-                {
-                    trilist.StringInput[joinMap.Name].StringValue = micDevice.Name;
-
-                    foreach (var item in micDevice._Props.Mics)
-                    {
-                        var i = item;
-                        var offset = (uint)((i.index - 1) * 4);
-
-                        trilist.BooleanInput[(joinMap.Enabled + offset)].BoolValue = i.enabled;
-                        trilist.StringInput[(joinMap.Name + offset)].StringValue = micDevice.MicNames[i.index];
-                    }
+                if (!args.DeviceOnLine) return;
+                foreach (var item in micDevice.MicNamesFeedback)
+                {                       
+                    item.Value.FireUpdate();
                 }
-            }
-            );
+
+                foreach (var item in micDevice.MicEnableFeedback)
+                {
+                    item.Value.FireUpdate();
+                }
+            };
         }
     }
 }

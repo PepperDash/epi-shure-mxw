@@ -25,7 +25,7 @@ namespace pdt_shureMXA_epi
     {
         DeviceConfig _Dc;
 
-        public Properties _Props { get; set; }
+        public Properties _Props { get; private set; }
 
         public Dictionary<int, bool> MicEnable;
         public Dictionary<int, BoolFeedback> MicEnableFeedback;
@@ -49,7 +49,7 @@ namespace pdt_shureMXA_epi
         public Dictionary<int, bool> MicOnCharger;
 
         public Dictionary<int, StringFeedback> MicNamesFeedback;
-        public Dictionary<int, string> MicNames;
+        public Dictionary<int, string> MicNames; 
 
         public CTimer Poll;
 
@@ -182,7 +182,7 @@ namespace pdt_shureMXA_epi
                 MicNames.Add(i.index, i.name);
                 MicNamesFeedback.Add(i.index, new StringFeedback(() => MicNames[i.index]));
 
-                MicEnable.Add(i.index, false);
+                MicEnable.Add(i.index, i.enabled);
                 MicEnableFeedback.Add(i.index, new BoolFeedback(() => MicEnable[i.index]));
             }
 

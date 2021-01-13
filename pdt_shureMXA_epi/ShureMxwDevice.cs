@@ -16,12 +16,14 @@ using PepperDash.Essentials.Bridges;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.Diagnostics;
 
+using pdt_shureMXA_epi.Bridge.JoinMap;
+
 using pdt_shureMXA_epi.Bridge;
 
 
 namespace pdt_shureMXA_epi
 {
-    public class ShureMxwDevice :ReconfigurableDevice, IBridge
+    public class ShureMxwDevice : EssentialsBridgeableDevice
     {
         DeviceConfig _Dc;
 
@@ -52,6 +54,20 @@ namespace pdt_shureMXA_epi
         public Dictionary<int, string> MicNames; 
 
         public CTimer Poll;
+
+        private string _error;
+
+        public string Error
+        {
+            get { return _error; }
+            set
+            {
+                _error = value;
+                ErrorFeedback.FireUpdate();
+            }
+        }
+
+        public StringFeedback ErrorFeedback;
 
         public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
@@ -84,21 +100,9 @@ namespace pdt_shureMXA_epi
             }
         }
 
-        public static void LoadPlugin()
-        {
-            DeviceFactory.AddFactoryForType("shuremxw", ShureMxwDevice.BuildDevice);
-        }
-
-        public static ShureMxwDevice BuildDevice(DeviceConfig dc)
-        {
-            var comm = CommFactory.CreateCommForDevice(dc);
-            var newMe = new ShureMxwDevice(dc.Key, dc.Name, comm, dc);
-
-            return newMe;
-        }
 
         public ShureMxwDevice(string key, string name, IBasicCommunication comm, DeviceConfig dc)
-            : base(dc)
+            : base(key, name)
         {
             _Dc = dc;
             Name = name;
@@ -155,6 +159,8 @@ namespace pdt_shureMXA_epi
 
             MicNames = new Dictionary<int, string>();
             MicNamesFeedback = new Dictionary<int, StringFeedback>();
+
+            ErrorFeedback = new StringFeedback(() => Error);
 
             foreach (var item in _Props.Mics)
             {
@@ -236,10 +242,59 @@ namespace pdt_shureMXA_epi
                     MicNamesFeedback[i.index].FireUpdate();
                     MicEnableFeedback[i.index].FireUpdate();
                 }
+
+                CheckStatusConditions();
             }
             catch (Exception e)
             {
                 //Do Something
+            }
+        }
+
+        private void CheckStatusConditions()
+        {
+            var errorCode = 0;
+            var errorStatus = "";
+
+            foreach (var mic in MicEnable)
+            {
+                var index = mic.Key;
+                var caution = MicLowBatteryCaution[index];
+                var warning = MicLowBatteryWarning[index];
+                var charging = MicOnCharger[index];
+                var micName = MicNames[index];
+                var cautionThreshold = CautionThreshold;
+                var warningThreshold = WarningThreshold;
+
+                if (errorStatus.Length > 0)
+                {
+                    errorStatus += "| ";
+                }
+
+                if (caution && !warning)
+                {
+                    errorStatus += String.Format("{0} - {1} - Mic Level < {2}% and{3} Charging", Name, micName, cautionThreshold, 
+                        charging ? "" : " not");
+                    if (errorCode < 1)
+                    {
+                        errorCode = 1;
+                    }
+                }
+
+                else if (warning && !caution)
+                {
+                    errorStatus += String.Format("{0} - {1} - Mic Level < {2}% and{3} Charging", Name, micName, warningThreshold,
+                        charging ? "" : " not");
+                    if (errorCode < 2)
+                    {
+                        errorCode = 2;
+                    }
+                }
+            }
+
+            if (errorCode == 0)
+            {
+                errorStatus = String.Format("{0} : {1} - Mics Okay");
             }
         }
 
@@ -371,14 +426,71 @@ namespace pdt_shureMXA_epi
         }
 
 
-        #region IBridge Members
 
-        public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey)
+        public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, PepperDash.Essentials.Core.Bridges.EiscApiAdvanced bridge)
         {
-            this.LinkToApiExt(trilist, joinStart, joinMapKey);
-        }
+            var joinMap = new ShureMxwDeviceJoinMap(joinStart);
 
-        #endregion
+            Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            Debug.Console(2, this, "There are {0} Mics", _Props.Mics.Count());
+
+            CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
+            Debug.Console(2, this, "Linked Online at {0}", joinMap.IsOnline);
+
+            ErrorFeedback.LinkInputSig(trilist.StringInput[joinMap.ErrorString.JoinNumber]);
+
+
+            foreach (var item in this._Props.Mics)
+            {
+                var i = item;
+                var offset = (uint)((i.index - 1) * 4);
+
+                Debug.Console(2, this, "Mic Channel {0} Connect", i.index);
+
+                trilist.BooleanInput[(joinMap.Enabled.JoinNumber + offset)].BoolValue = i.enabled;
+                Debug.Console(2, this, "Linked Mic {0} Enabled at {1}", i.index, joinMap.Enabled.JoinNumber + offset);
+                MicEnableFeedback[i.index].LinkInputSig(trilist.BooleanInput[joinMap.Enabled.JoinNumber + offset]);
+
+                trilist.StringInput[(joinMap.Name.JoinNumber + offset)].StringValue = this.MicNames[i.index];
+                Debug.Console(2, this, "Linked Mic {0} Name at {1}", i.index, joinMap.Name.JoinNumber + offset);
+                MicNamesFeedback[i.index].LinkInputSig(trilist.StringInput[joinMap.Name.JoinNumber + offset]);
+
+                MicBatteryLevelFeedback[i.index].LinkInputSig(trilist.UShortInput[joinMap.BatteryLevel.JoinNumber + offset]);
+                Debug.Console(2, this, "Linked Mic {0} Battery Level Feedback at {1}", i.index, joinMap.BatteryLevel.JoinNumber + offset);
+
+                MicStatusFeedback[i.index].LinkInputSig(trilist.UShortInput[joinMap.LocalStatus.JoinNumber + offset]);
+                Debug.Console(2, this, "Linked Mic {0} Status Feedback at {1}", i.index, joinMap.LocalStatus.JoinNumber + offset);
+
+                MicLowBatteryStatusFeedback[i.index].LinkInputSig(trilist.UShortInput[joinMap.BatteryStatus.JoinNumber + offset]);
+                Debug.Console(2, this, "Linked Mic {0} Battery Status Feedback at {1}", i.index, joinMap.BatteryStatus.JoinNumber + offset);
+
+                MicLowBatteryCautionFeedback[i.index].LinkInputSig(trilist.BooleanInput[joinMap.LowBatteryCaution.JoinNumber + offset]);
+                Debug.Console(2, this, "Linked Mic {0} Battery Caution Feedback at {1}", i.index, joinMap.LowBatteryCaution.JoinNumber + offset);
+
+                MicLowBatteryWarningFeedback[i.index].LinkInputSig(trilist.BooleanInput[joinMap.LowBatteryWarning.JoinNumber + offset]);
+                Debug.Console(2, this, "Linked Mic {0} Battery Warning Feedback at {1}", i.index, joinMap.LowBatteryWarning.JoinNumber + offset);
+
+                MicOnChargerFeedback[i.index].LinkInputSig(trilist.BooleanInput[joinMap.OnCharger.JoinNumber + offset]);
+                Debug.Console(2, this, "Linked Mic {0} On Charger Feedback at {1}", i.index, joinMap.OnCharger.JoinNumber + offset);
+
+
+
+            }
+
+            trilist.OnlineStatusChange += (d, args) =>
+            {
+                if (!args.DeviceOnLine) return;
+                foreach (var item in MicNamesFeedback)
+                {
+                    item.Value.FireUpdate();
+                }
+
+                foreach (var item in MicEnableFeedback)
+                {
+                    item.Value.FireUpdate();
+                }
+            };
+        }
     }
 }
 

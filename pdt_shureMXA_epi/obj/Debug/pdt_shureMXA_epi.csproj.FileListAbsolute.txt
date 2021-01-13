@@ -40,3 +40,9 @@ C:\Development\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpP
 C:\Development\epi-mics-shuremxw\pdt_shureMXA_epi\obj\Debug\ResolveAssemblyReference.cache
 C:\Development\epi-mics-shuremxw\pdt_shureMXA_epi\obj\Debug\pdt_shureMXA_epi.dll
 C:\Development\epi-mics-shuremxw\pdt_shureMXA_epi\obj\Debug\pdt_shureMXA_epi.pdb
+C:\Development\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Essentials Devices Common.dll
+C:\Development\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\PepperDash_Core.dll
+C:\Development\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\PepperDash_Essentials_Core.dll
+C:\Development\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\PepperDashEssentials.dll
+C:\Development\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpPro.Remotes.dll
+C:\Development\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpPro.ThreeSeriesCards.dll

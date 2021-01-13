@@ -8,53 +8,117 @@ using PepperDash.Essentials.Core;
 
 namespace pdt_shureMXA_epi.Bridge.JoinMap
 {
-    public class ShureMxwDeviceJoinMap : JoinMapBase
+    public class ShureMxwDeviceJoinMap : JoinMapBaseAdvanced
     {
-        #region Digital
-        public uint IsOnline { get; set; }
-        public uint Enabled { get; set; }
-        public uint LowBatteryCaution { get; set; }
-        public uint LowBatteryWarning { get; set; }
-        public uint OnCharger { get; set; }
-
-        #endregion
-
-        #region Analog
-        public uint SetGlobalStatus { get; set; }
-        public uint SetLocalStatus { get; set; }
-        public uint LocalStatus { get; set; }
-        public uint BatteryLevel { get; set; }
-        public uint BatteryStatus { get; set; }
-        #endregion
-
-        #region Serial
-        public uint Name { get; set; }
-        #endregion
-
-        public ShureMxwDeviceJoinMap()
+        public ShureMxwDeviceJoinMap(uint joinStart)
+            : base(joinStart, typeof(ShureMxwDeviceJoinMap))
         {
-            IsOnline = 1;
-            SetGlobalStatus = 1;
-            Enabled = 2;
-            LowBatteryCaution = 3;
-            LowBatteryWarning = 4;
-            OnCharger = 5;
-            Name = 2;
-            SetLocalStatus = 2;
-            LocalStatus = 2;
-            BatteryLevel = 3;
-            BatteryStatus = 4;
+
         }
 
-
-        public override void OffsetJoinNumbers(uint joinStart)
-        {
-            var joinOffset = joinStart - 1;
-            var properties = this.GetType().GetCType().GetProperties().Where(o => o.PropertyType == typeof(uint)).ToList();
-            foreach (var property in properties)
+        [JoinName("IsOnline")]
+        public JoinDataComplete IsOnline =
+            new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
+            new JoinMetadata
             {
-                property.SetValue(this, (uint)property.GetValue(this, null) + joinOffset, null);
-            }
-        }
+                Description = "Device Online",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("Enabled")]
+        public JoinDataComplete Enabled =
+            new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Mic Enabled",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("LowBatteryCaution")]
+        public JoinDataComplete LowBatteryCaution =
+            new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Mic Low Battery Caution",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("LowBatteryWarning")]
+        public JoinDataComplete LowBatteryWarning =
+            new JoinDataComplete(new JoinData { JoinNumber = 4, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Mic Low Battery Warning",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("OnCharger")]
+        public JoinDataComplete OnCharger =
+            new JoinDataComplete(new JoinData { JoinNumber = 5, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Mic On Charger",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+
+        [JoinName("LocalStatus")]
+        public JoinDataComplete LocalStatus =
+            new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Mic Status",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        [JoinName("BatteryLevel")]
+        public JoinDataComplete BatteryLevel =
+            new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Mic Battery level",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        [JoinName("BatteryStatus")]
+        public JoinDataComplete BatteryStatus =
+            new JoinDataComplete(new JoinData { JoinNumber = 4, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Mic Battery level",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+
+        [JoinName("Name")]
+        public JoinDataComplete Name =
+            new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Mic Name",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+        [JoinName("ErrorString")]
+        public JoinDataComplete ErrorString =
+            new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Aggregate ErrorString",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
+
+
+
+
     }
 }

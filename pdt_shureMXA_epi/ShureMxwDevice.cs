@@ -440,10 +440,10 @@ namespace pdt_shureMXA_epi
             ErrorFeedback.LinkInputSig(trilist.StringInput[joinMap.ErrorString.JoinNumber]);
 
 
-            foreach (var item in this._Props.Mics)
+            foreach (var item in _Props.Mics)
             {
                 var i = item;
-                var offset = (uint)((i.index - 1) * 4);
+                var offset = (uint)((i.index - 1) * 5);
 
                 Debug.Console(2, this, "Mic Channel {0} Connect", i.index);
 

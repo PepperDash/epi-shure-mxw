@@ -1,8 +1,9 @@
 ﻿using System.Reflection;
 
-[assembly: AssemblyTitle("pdt_shureMXA_epi")]
+[assembly: AssemblyTitle("ShureMxwEpi")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("pdt_shureMXA_epi")]
-[assembly: AssemblyCopyright("Copyright ©  2020")]
+[assembly: AssemblyProduct("ShureMxwEpi")]
+[assembly: AssemblyCopyright("Copyright ©  2023")]
 [assembly: AssemblyVersion("1.0.0.*")]
-
+[assembly: AssemblyInformationalVersion("0.0.0-buildType-build#")]
+[assembly: Crestron.SimplSharp.Reflection.AssemblyInformationalVersion("0.0.0-buildType-build#")]

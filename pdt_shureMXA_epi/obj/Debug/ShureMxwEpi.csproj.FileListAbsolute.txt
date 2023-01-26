@@ -1,0 +1,25 @@
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\ShureMxwEpi.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\ShureMxwEpi.pdb
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Essentials Devices Common.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\PepperDash_Core.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\PepperDash_Essentials_Core.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\PepperDash_Essentials_DM.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\PepperDashEssentials.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\SimplSharpNewtonsoft.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\SimplSharpReflectionInterface.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpPro.Lighting.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\SimplSharpSQLHelperInterface.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpPro.Fusion.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpPro.Shades.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpPro.Remotes.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpPro.EthernetCommunications.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpPro.ThreeSeriesCards.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpPro.DeviceSupport.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpPro.UI.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\SimplSharpTimerEventInterface.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpPro.Gateways.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpPro.GeneralIO.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\bin\Debug\Crestron.SimplSharpPro.DM.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\obj\Debug\ResolveAssemblyReference.cache
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\obj\Debug\ShureMxwEpi.dll
+C:\Pepperdash\BankOfAmerica\epi-mics-shuremxw\pdt_shureMXA_epi\obj\Debug\ShureMxwEpi.pdb

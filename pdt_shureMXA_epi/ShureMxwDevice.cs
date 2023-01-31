@@ -443,7 +443,7 @@ namespace pdt_shureMXA_epi
             foreach (var item in this._Props.Mics)
             {
                 var i = item;
-                var offset = (uint)((i.index - 1) * 4);
+                var offset = (uint)((i.index - 1) * 5);
 
                 Debug.Console(2, this, "Mic Channel {0} Connect", i.index);
 

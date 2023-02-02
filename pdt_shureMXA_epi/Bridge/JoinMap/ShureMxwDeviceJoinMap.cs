@@ -6,7 +6,7 @@ using Crestron.SimplSharp;
 using Crestron.SimplSharp.Reflection;
 using PepperDash.Essentials.Core;
 
-namespace pdt_shureMXA_epi.Bridge.JoinMap
+namespace pdt_shureMXW_epi.Bridge.JoinMap
 {
     public class ShureMxwDeviceJoinMap : JoinMapBaseAdvanced
     {
@@ -62,6 +62,15 @@ namespace pdt_shureMXA_epi.Bridge.JoinMap
             new JoinMetadata
             {
                 Description = "Mic On Charger",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
+            });
+        [JoinName("OnChargerFbEnable")]
+        public JoinDataComplete OnChargerFbEnable =
+            new JoinDataComplete(new JoinData { JoinNumber = 6, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Mic On Charger Feedback Enable",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Digital
             });

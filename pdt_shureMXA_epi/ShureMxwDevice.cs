@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Crestron.SimplSharp;
+using pdt_shureMXW_epi.Bridge.JoinMap;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Devices;
@@ -15,13 +16,10 @@ using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Bridges;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.Diagnostics;
-
-using pdt_shureMXA_epi.Bridge.JoinMap;
-
-using pdt_shureMXA_epi.Bridge;
+using pdt_shureMXW_epi.Bridge;
 
 
-namespace pdt_shureMXA_epi
+namespace pdt_shureMXW_epi
 {
     public class ShureMxwDevice : EssentialsBridgeableDevice
     {
@@ -440,7 +438,7 @@ namespace pdt_shureMXA_epi
             ErrorFeedback.LinkInputSig(trilist.StringInput[joinMap.ErrorString.JoinNumber]);
 
 
-            foreach (var item in this._Props.Mics)
+            foreach (var item in _Props.Mics)
             {
                 var i = item;
                 var offset = (uint)((i.index - 1) * 5);
@@ -472,6 +470,8 @@ namespace pdt_shureMXA_epi
 
                 MicOnChargerFeedback[i.index].LinkInputSig(trilist.BooleanInput[joinMap.OnCharger.JoinNumber + offset]);
                 Debug.Console(2, this, "Linked Mic {0} On Charger Feedback at {1}", i.index, joinMap.OnCharger.JoinNumber + offset);
+
+                MicEnableFeedback[i.index].LinkInputSig(trilist.BooleanInput[joinMap.OnChargerFbEnable.JoinNumber + offset]);
 
 
 

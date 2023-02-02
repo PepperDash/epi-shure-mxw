@@ -3,7 +3,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
 
-namespace pdt_shureMXA_epi
+namespace pdt_shureMXW_epi
 {
     public class ShureMxwFactory : EssentialsPluginDeviceFactory<ShureMxwDevice>
     {

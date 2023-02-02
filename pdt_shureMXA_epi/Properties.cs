@@ -7,7 +7,7 @@ using Crestron.SimplSharp;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
-namespace pdt_shureMXA_epi
+namespace pdt_shureMXW_epi
 {
     public class Properties
     {

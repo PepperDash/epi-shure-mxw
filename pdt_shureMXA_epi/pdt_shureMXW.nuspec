@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>PepperDash.Essentials.Plugin.ShureMXW</id>
+    <version>1.5.6</version>
+    <readme>docs\README.md</readme>
+    <title>Shure MXW Essentials Plugin</title>
+    <authors>PepperDash Technologies</authors>
+    <owners>pepperdash</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/PepperDash-Engineering/epi-mics-shuremxw</projectUrl>
+    <copyright>Copyright 2023</copyright>
+    <description>Shure Microflex Wireless Mics</description>
+    <tags>crestron 3series 4series</tags>
+    <repository type="git" url="https://github.com/PepperDash-Engineering/epi-mics-shuremxw"/>
+  </metadata>
+    <files>
+      <file src="**" target="lib\net35"/>
+      <file src="**" target="lib\net47"/>
+      <file src="README.md" target="docs\"/>
+    </files>
+</package>

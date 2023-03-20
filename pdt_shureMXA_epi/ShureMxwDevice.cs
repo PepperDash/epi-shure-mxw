@@ -1,31 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Crestron.SimplSharp;
 using pdt_shureMXW_epi.Bridge.JoinMap;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Devices;
-using PepperDash.Essentials.Devices.Common.Codec;
-using PepperDash.Essentials.Devices.Common.DSP;
-using System.Text.RegularExpressions;
-using Crestron.SimplSharp.Reflection;
 using Newtonsoft.Json;
 using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Bridges;
 using Crestron.SimplSharpPro.DeviceSupport;
-using Crestron.SimplSharpPro.Diagnostics;
-using pdt_shureMXW_epi.Bridge;
 
 
 namespace pdt_shureMXW_epi
 {
-    public class ShureMxwDevice : EssentialsBridgeableDevice
+    public class ShureMxwDevice : EssentialsBridgeableDevice, IPrivacy
     {
-        DeviceConfig _Dc;
-
-        public Properties _Props { get; private set; }
+        public Properties Props { get; private set; }
 
         public Dictionary<int, bool> MicEnable;
         public Dictionary<int, BoolFeedback> MicEnableFeedback;
@@ -49,7 +38,11 @@ namespace pdt_shureMXW_epi
         public Dictionary<int, bool> MicOnCharger;
 
         public Dictionary<int, StringFeedback> MicNamesFeedback;
-        public Dictionary<int, string> MicNames; 
+        public Dictionary<int, string> MicNames;
+
+        public Dictionary<int, BoolFeedback> MicMuteFeedback;
+        public Dictionary<int, bool> MicMute;
+
 
         public CTimer Poll;
 
@@ -66,35 +59,37 @@ namespace pdt_shureMXW_epi
         }
 
         public StringFeedback ErrorFeedback;
+        public BoolFeedback PrivacyModeIsOnFeedback { get; private set; }
+
 
         public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
         public GenericCommunicationMonitor CommunicationMonitor { get; private set; }
-        long _CautionThreshold { get; set; }
+        private long _cautionThreshold;
 
         int CautionThreshold
         {
             get
             {
-                return (int)((_CautionThreshold * 65535) / 100);
+                return (int)((_cautionThreshold * 65535) / 100);
             }
             set
             {
-                _CautionThreshold = value;
+                _cautionThreshold = value;
             }
         }
 
-        long _WarningThreshold { get; set; }
+        private long _warningThreshold;
 
         int WarningThreshold
         {
             get
             {
-                return (int)((_WarningThreshold * 65535) / 100);
+                return (int)((_warningThreshold * 65535) / 100);
             }
             set
             {
-                _WarningThreshold = value;
+                _warningThreshold = value;
             }
         }
 
@@ -102,30 +97,26 @@ namespace pdt_shureMXW_epi
         public ShureMxwDevice(string key, string name, IBasicCommunication comm, DeviceConfig dc)
             : base(key, name)
         {
-            _Dc = dc;
+            DeviceConfig dc1 = dc;
             Name = name;
             
-            _Props = JsonConvert.DeserializeObject<Properties>(_Dc.Properties.ToString());
+            Props = JsonConvert.DeserializeObject<Properties>(dc1.Properties.ToString());
 
-            CautionThreshold = _Props.cautionthreshold;
-            WarningThreshold = _Props.warningThreshold;
+            CautionThreshold = Props.cautionthreshold;
+            WarningThreshold = Props.warningThreshold;
 
             Debug.Console(1, this, "Made it to consturctor for ShureMxw {0}", Name);
-            Debug.Console(2, this, "ShureMxw Properties : {0}", _Dc.Properties.ToString());
+            Debug.Console(2, this, "ShureMxw Properties : {0}", dc1.Properties.ToString());
 
             Communication = comm;
             var socket = comm as ISocketStatus;
             if (socket != null)
             {
-                socket.ConnectionChange += new EventHandler<GenericSocketStatusChageEventArgs>(socket_ConnectionChange);
-            }
-            else
-            {
-                //I'm RS232, Yo!
+                socket.ConnectionChange += socket_ConnectionChange;
             }
 
             PortGather = new CommunicationGather(Communication, ">");
-            PortGather.LineReceived += new EventHandler<GenericCommMethodReceiveTextArgs>(PortGather_LineReceived);
+            PortGather.LineReceived += LineReceived;
 
             CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 15000, 180000, 300000, DoPoll);
 
@@ -155,12 +146,15 @@ namespace pdt_shureMXW_epi
             MicOnCharger = new Dictionary<int, bool>();
             MicOnChargerFeedback = new Dictionary<int, BoolFeedback>();
 
+            MicMute = new Dictionary<int, bool>();
+            MicMuteFeedback = new Dictionary<int, BoolFeedback>();
+
             MicNames = new Dictionary<int, string>();
             MicNamesFeedback = new Dictionary<int, StringFeedback>();
 
             ErrorFeedback = new StringFeedback(() => Error);
 
-            foreach (var item in _Props.Mics)
+            foreach (var item in Props.Mics)
             {
                 var i = item;
                 Debug.Console(2, this, "This Mic's name is {0}", i.name);
@@ -188,13 +182,18 @@ namespace pdt_shureMXW_epi
 
                 MicEnable.Add(i.index, i.enabled);
                 MicEnableFeedback.Add(i.index, new BoolFeedback(() => MicEnable[i.index]));
+
+                MicMute.Add(i.index, i.enabled);
+                MicMuteFeedback.Add(i.index, new BoolFeedback(() => MicMute[i.index]));
             }
+
+            PrivacyModeIsOnFeedback = new BoolFeedback(() => MicMuteFeedback.Values.All(value => value.BoolValue));
 
             Communication.Connect();
             CommunicationMonitor.Start();
         }
 
-        void PortGather_LineReceived(object sender, GenericCommMethodReceiveTextArgs args)
+        void LineReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
             if (Debug.Level == 2)
                 Debug.Console(2, this, "RX: '{0}'", args.Text);
@@ -205,28 +204,29 @@ namespace pdt_shureMXW_epi
                 //Is a Status Response
                 if (data.Contains("REP"))
                 {
-                    var DataChunks = data.Split(' ');
+                    var dataChunks = data.Split(' ');
 
-                    var attribute = DataChunks[3];
-                    var index = int.Parse(DataChunks[2]);
+                    var attribute = dataChunks[3];
+                    var index = int.Parse(dataChunks[2]);
 
                     if (attribute == "TX_STATUS")
                     {
-                        int Status = (int)Enum.Parse(typeof(Tx_Status), DataChunks[4], true);
-                        MicStatus[index] = Status;
+                        var status = (int)Enum.Parse(typeof(Tx_Status), dataChunks[4], true);
+                        MicStatus[index] = status;
                         MicStatusFeedback[index].FireUpdate();
-                        MicOnCharger[index] = (Status == (int)Tx_Status.ON_CHARGER ? true : false);
+                        MicOnCharger[index] = (status == (int)Tx_Status.ON_CHARGER);
                         MicOnChargerFeedback[index].FireUpdate();
+                        MicMute[index] = status == (int)Tx_Status.MUTE;
+                        MicMuteFeedback[index].FireUpdate();
                         MicNamesFeedback[index].FireUpdate();
-
-
+                        PrivacyModeIsOnFeedback.FireUpdate();
                     }
                     if (attribute == "BATT_CHARGE")
                     {
-                        if (int.Parse(DataChunks[4]) != 255)
+                        if (int.Parse(dataChunks[4]) != 255)
                         {
-                            var Status = (int)((long.Parse(DataChunks[4]) * 65535) / 100);
-                            MicBatteryLevel[index] = Status;
+                            var status = (int)((long.Parse(dataChunks[4]) * 65535) / 100);
+                            MicBatteryLevel[index] = status;
                             MicBatteryLevelFeedback[index].FireUpdate();
                             UpdateAlert(index);
                             MicNamesFeedback[index].FireUpdate();
@@ -234,7 +234,7 @@ namespace pdt_shureMXW_epi
                         }
                     }
                 }
-                foreach (var item in _Props.Mics)
+                foreach (var item in Props.Mics)
                 {
                     var i = item;
                     MicNamesFeedback[i.index].FireUpdate();
@@ -245,7 +245,7 @@ namespace pdt_shureMXW_epi
             }
             catch (Exception e)
             {
-                //Do Something
+                Debug.Console(0, this, "Exception in LineReceived : {0}", e.Message);
             }
         }
 
@@ -430,7 +430,7 @@ namespace pdt_shureMXW_epi
             var joinMap = new ShureMxwDeviceJoinMap(joinStart);
 
             Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
-            Debug.Console(2, this, "There are {0} Mics", _Props.Mics.Count());
+            Debug.Console(2, this, "There are {0} Mics", Props.Mics.Count());
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             Debug.Console(2, this, "Linked Online at {0}", joinMap.IsOnline);
@@ -438,7 +438,7 @@ namespace pdt_shureMXW_epi
             ErrorFeedback.LinkInputSig(trilist.StringInput[joinMap.ErrorString.JoinNumber]);
 
 
-            foreach (var item in _Props.Mics)
+            foreach (var item in Props.Mics)
             {
                 var i = item;
                 var offset = (uint)((i.index - 1) * 5);
@@ -491,6 +491,48 @@ namespace pdt_shureMXW_epi
                 }
             };
         }
+
+        #region IPrivacy Members
+
+
+        public void PrivacyModeOff()
+        {
+            for (var i = 0; i < MicMute.Count; i++)
+            {
+                var cmd = string.Format("< SET {0} TX_STATUS ACTIVE>", i + 1);
+                CommandManager(cmd);
+            }
+        }
+
+        public void PrivacyModeOn()
+        {
+            for (var i = 0; i < MicMute.Count; i++)
+            {
+                var cmd = string.Format("< SET {0} TX_STATUS MUTE>", i + 1);
+                CommandManager(cmd);
+            }
+        }
+
+        public void PrivacyModeToggle()
+        {
+            if (PrivacyModeIsOnFeedback.BoolValue)
+            {
+                PrivacyModeOff();
+                return;
+            }
+            PrivacyModeOn();
+        }
+
+        #endregion
+
+        #region IPrivacy Members
+
+        #endregion
+
+        #region IPrivacy Members
+
+
+        #endregion
     }
 }
 

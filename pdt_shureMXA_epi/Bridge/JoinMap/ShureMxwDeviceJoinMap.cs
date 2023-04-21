@@ -115,6 +115,15 @@ namespace pdt_shureMXW_epi.Bridge.JoinMap
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
             });
+        [JoinName("DeviceName")]
+        public JoinDataComplete DeviceName =
+            new JoinDataComplete(new JoinData { JoinNumber = 50, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Device Name Name",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Serial
+            });
 
         [JoinName("ErrorString")]
         public JoinDataComplete ErrorString =
@@ -124,6 +133,15 @@ namespace pdt_shureMXW_epi.Bridge.JoinMap
                 Description = "Aggregate ErrorString",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Serial
+            });
+        [JoinName("AnyPress")]
+        public JoinDataComplete AnyPress = 
+            new JoinDataComplete(new JoinData() { JoinNumber = 48, JoinSpan = 1}, 
+            new JoinMetadata
+            {
+                Description = "Any Button WasPressed",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Digital
             });
 
 

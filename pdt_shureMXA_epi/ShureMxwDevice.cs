@@ -106,32 +106,15 @@ namespace pdt_shureMXW_epi
         }
 
 
-        public ShureMxwDevice(string key, string name, IBasicCommunication comm, DeviceConfig dc)
+        public ShureMxwDevice(string key, string name, IBasicCommunication comm, Properties dc)
             : base(key, name)
         {
             var dc1 = dc;
             Name = name;
 
-            var mics = new List<Mic>();
-            
-            //Props = JsonConvert.DeserializeObject<Properties>(dc1.Properties.ToString());
-            Props = dc1.Properties.ToObject<Properties>();
+            var mics = dc.Mics.Select(mic => new Mic(mic.Key, mic.Value)).ToList();
 
-            var micsToken = dc1.Properties.SelectToken("mics");
-            if (micsToken is JArray)
-            {
-                mics = micsToken.ToObject<List<Mic>>();
-            }
-            if (micsToken is JObject)
-            {
-                mics = ListConvert(micsToken.ToObject<Dictionary<string, MicDict>>()); 
-            }
-
-            if (mics.Count < 1)
-            {
-                Debug.Console(0, this, "Malformed Json - check your config");
-                return;
-            }
+            Props = dc;
 
             Mics = mics;
 
@@ -139,8 +122,6 @@ namespace pdt_shureMXW_epi
             CautionThreshold = Props.CautionThreshold;
             WarningThreshold = Props.WarningThreshold;
 
-            Debug.Console(1, this, "Made it to consturctor for ShureMxw {0}", Name);
-            Debug.Console(2, this, "ShureMxw Properties : {0}", dc1.Properties.ToString());
 
             Communication = comm;
             var socket = comm as ISocketStatus;
@@ -481,8 +462,13 @@ namespace pdt_shureMXW_epi
         {
             var joinMap = new ShureMxwDeviceJoinMap(joinStart);
 
-            Debug.Console(1, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
-            Debug.Console(2, this, "There are {0} Mic", Mics.Count());
+            Debug.Console(0, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            Debug.Console(0, this, "There are {0} Mic", Mics.Count());
+
+            if (bridge != null)
+            {
+                bridge.AddJoinMap(Key, joinMap);
+            }
 
             CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             Debug.Console(2, this, "Linked Online at {0}", joinMap.IsOnline);

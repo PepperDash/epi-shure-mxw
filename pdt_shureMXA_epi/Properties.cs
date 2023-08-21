@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 using PepperDash.Core;
 
 namespace pdt_shureMXW_epi
@@ -9,8 +10,10 @@ namespace pdt_shureMXW_epi
 
         [JsonProperty("cautionThreshold")]
         public int CautionThreshold { get; set; }
-        [JsonProperty("WarningThreshold")]
+        [JsonProperty("warningThreshold")]
         public int WarningThreshold { get; set; }
+        [JsonProperty("mics")]
+        public Dictionary<string, MicDict> Mics { get; set; }
     }
 
     public class Mic : IKeyed

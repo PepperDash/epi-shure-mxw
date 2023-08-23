@@ -31,7 +31,7 @@ namespace pdt_shureMXW_epi
 
             if (config != null)
             {
-                return new ShureMxwDevice(dc.Key, dc.Name, comms, dc);
+                return new ShureMxwDevice(dc.Key, dc.Name, comms, config);
             }
 
             Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to deserialize config for device {0}", dc.Key);

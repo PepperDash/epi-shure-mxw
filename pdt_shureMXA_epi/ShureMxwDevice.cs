@@ -24,8 +24,11 @@ namespace pdt_shureMXW_epi
         public Dictionary<int, IntFeedback> MicStatusFeedback;
         public Dictionary<int, int> MicStatus;
 
-        public Dictionary<int, IntFeedback> MicBatteryLevelFeedback;
-        public Dictionary<int, int> MicBatteryLevel;
+        public Dictionary<int, IntFeedback> MicBatteryLevelPercentageFeedback;
+        public Dictionary<int, int> MicBatteryLevelPercentage;
+
+        public Dictionary<int, IntFeedback> MicBatteryLevelRawFeedback;
+        public Dictionary<int, int> MicBatteryLevelRaw;
 
         public Dictionary<int, BoolFeedback> MicLowBatteryCautionFeedback;
         public Dictionary<int, bool> MicLowBatteryCaution;
@@ -77,33 +80,10 @@ namespace pdt_shureMXW_epi
         public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
         public GenericCommunicationMonitor CommunicationMonitor { get; private set; }
-        private long _cautionThreshold;
 
-        int CautionThreshold
-        {
-            get
-            {
-                return (int)((_cautionThreshold * 65535) / 100);
-            }
-            set
-            {
-                _cautionThreshold = value;
-            }
-        }
+        int CautionThreshold { get; set; }
 
-        private long _warningThreshold;
-
-        int WarningThreshold
-        {
-            get
-            {
-                return (int)((_warningThreshold * 65535) / 100);
-            }
-            set
-            {
-                _warningThreshold = value;
-            }
-        }
+        int WarningThreshold { get; set; }
 
 
         public ShureMxwDevice(string key, string name, IBasicCommunication comm, Properties dc)
@@ -146,8 +126,11 @@ namespace pdt_shureMXW_epi
             MicStatus = new Dictionary<int, int>();
             MicStatusFeedback = new Dictionary<int, IntFeedback>();
 
-            MicBatteryLevel = new Dictionary<int, int>();
-            MicBatteryLevelFeedback = new Dictionary<int, IntFeedback>();
+            MicBatteryLevelPercentage = new Dictionary<int, int>();
+            MicBatteryLevelPercentageFeedback = new Dictionary<int, IntFeedback>();
+
+            MicBatteryLevelRaw = new Dictionary<int, int>();
+            MicBatteryLevelRawFeedback = new Dictionary<int, IntFeedback>();
 
             MicLowBatteryCaution = new Dictionary<int, bool>();
             MicLowBatteryCautionFeedback = new Dictionary<int, BoolFeedback>();
@@ -181,8 +164,11 @@ namespace pdt_shureMXW_epi
                 MicStatus.Add(i.Index, 0);
                 MicStatusFeedback.Add(i.Index, new IntFeedback(() => MicStatus[i.Index]));
 
-                MicBatteryLevel.Add(i.Index, 0);
-                MicBatteryLevelFeedback.Add(i.Index, new IntFeedback(() => MicBatteryLevel[i.Index]));
+                MicBatteryLevelPercentage.Add(i.Index, 0);
+                MicBatteryLevelPercentageFeedback.Add(i.Index, new IntFeedback(() => MicBatteryLevelPercentage[i.Index]));
+
+                MicBatteryLevelRaw.Add(i.Index, 0);
+                MicBatteryLevelRawFeedback.Add(i.Index, new IntFeedback(() => MicBatteryLevelRaw[i.Index]));
 
                 MicLowBatteryCaution.Add(i.Index, false);
                 MicLowBatteryCautionFeedback.Add(i.Index, new BoolFeedback(() => MicLowBatteryCaution[i.Index]));
@@ -212,13 +198,22 @@ namespace pdt_shureMXW_epi
             PrivacyModeIsOnFeedback = new BoolFeedback(() => MicMuteFeedback.Values.All(value => value.BoolValue));
             MicAnyPressFeedback = new BoolFeedback(() => MicPressFeedback.Values.Any(value => value.BoolValue));
 
+            
+        }
+
+        #region Overrides of Device
+
+        public override void Initialize()
+        {
             Communication.Connect();
             CommunicationMonitor.Start();
         }
 
+        #endregion
+
         void LineReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
-            Debug.Console(2, this, "RX: '{0}'", args.Text);
+            //Debug.Console(2, this, "RX: '{0}'", args.Text);
             try
             {
                 var data = args.Text;
@@ -231,6 +226,12 @@ namespace pdt_shureMXW_epi
 
                     var attribute = dataChunks[3];
                     var index = int.Parse(dataChunks[2]);
+
+                    if (Props.Mics.All(kvp => kvp.Value.Index != index))
+                    {
+                        Debug.Console(1, this, "Not configure for mic at index {0}", index);
+                        return;
+                    }
 
                     if (attribute == "TX_STATUS")
                     {
@@ -249,8 +250,11 @@ namespace pdt_shureMXW_epi
                         if (int.Parse(dataChunks[4]) != 255)
                         {
                             var status = (int)((long.Parse(dataChunks[4]) * 65535) / 100);
-                            MicBatteryLevel[index] = status;
-                            MicBatteryLevelFeedback[index].FireUpdate();
+                            MicBatteryLevelRaw[index] = status;
+                            MicBatteryLevelRawFeedback[index].FireUpdate();
+
+                            MicBatteryLevelPercentage[index] = int.Parse(dataChunks[4]);
+                            MicBatteryLevelPercentageFeedback[index].FireUpdate();
                             UpdateAlert(index);
                             MicNamesFeedback[index].FireUpdate();
 
@@ -276,7 +280,7 @@ namespace pdt_shureMXW_epi
             }
             catch (Exception e)
             {
-                Debug.Console(0, this, "Exception in LineReceived : {0}", e.Message);
+                Debug.Console(1, this,Debug.ErrorLogLevel.Error, "Exception in LineReceived : {0}", e.Message);
             }
         }
 
@@ -332,31 +336,37 @@ namespace pdt_shureMXW_epi
             {
                 MicLowBatteryCaution[data] = false;
                 MicLowBatteryWarning[data] = false;
-                MicLowBatteryStatus[data] = 0; 
+                MicLowBatteryStatus[data] = 0;
+                return;
             }
 
-            else if (MicStatus[data] != (int)Tx_Status.UNKNOWN)
+            if (MicStatus[data] == (int) Tx_Status.UNKNOWN)
             {
-                if (MicBatteryLevel[data] <= WarningThreshold)
-                {
-                    MicLowBatteryWarning[data] = true;
-                    MicLowBatteryCaution[data] = false;
-                    MicLowBatteryStatus[data] = 2;
-
-                }
-                else if (MicBatteryLevel[data] <= CautionThreshold)
-                {
-                    MicLowBatteryWarning[data] = false;
-                    MicLowBatteryCaution[data] = true;
-                    MicLowBatteryStatus[data] = 1;
-                }
-                else
-                {
-                    MicLowBatteryCaution[data] = false;
-                    MicLowBatteryWarning[data] = false;
-                    MicLowBatteryStatus[data] = 0;
-                }
+                return;
             }
+            
+            Debug.Console(1, this, "Battery Percentage: {0} | Warning Threshold: {1} | Caution Threshold: {2}", MicBatteryLevelPercentage[data], WarningThreshold, CautionThreshold);
+
+            if (MicBatteryLevelPercentage[data] <= WarningThreshold)
+            {
+                MicLowBatteryWarning[data] = true;
+                MicLowBatteryCaution[data] = false;
+                MicLowBatteryStatus[data] = 2;
+
+            }
+            else if (MicBatteryLevelPercentage[data] <= CautionThreshold)
+            {
+                MicLowBatteryWarning[data] = false;
+                MicLowBatteryCaution[data] = true;
+                MicLowBatteryStatus[data] = 1;
+            }
+            else
+            {
+                MicLowBatteryCaution[data] = false;
+                MicLowBatteryWarning[data] = false;
+                MicLowBatteryStatus[data] = 0;
+            }
+            
 
             MicLowBatteryCautionFeedback[data].FireUpdate();
             MicLowBatteryWarningFeedback[data].FireUpdate();
@@ -495,8 +505,11 @@ namespace pdt_shureMXW_epi
                 Debug.Console(2, this, "Linked Mic {0} Name at {1}", i.Index, joinMap.Name.JoinNumber + offset);
                 MicNamesFeedback[i.Index].LinkInputSig(trilist.StringInput[joinMap.Name.JoinNumber + offset]);
 
-                MicBatteryLevelFeedback[i.Index].LinkInputSig(trilist.UShortInput[joinMap.BatteryLevel.JoinNumber + offset]);
-                Debug.Console(2, this, "Linked Mic {0} Battery Level Feedback at {1}", i.Index, joinMap.BatteryLevel.JoinNumber + offset);
+                MicBatteryLevelPercentageFeedback[i.Index].LinkInputSig(trilist.UShortInput[joinMap.BatteryLevelPercentage.JoinNumber + offset]);
+                Debug.Console(2, this, "Linked Mic {0} Battery Level Feedback at {1}", i.Index, joinMap.BatteryLevelPercentage.JoinNumber + offset);
+
+                MicBatteryLevelRawFeedback[i.Index].LinkInputSig(trilist.UShortInput[joinMap.BatteryLevelRaw.JoinNumber + offset]);
+                Debug.Console(2, this, "Linked Mic {0} Battery Level Feedback at {1}", i.Index, joinMap.BatteryLevelPercentage.JoinNumber + offset);
 
                 MicStatusFeedback[i.Index].LinkInputSig(trilist.UShortInput[joinMap.LocalStatus.JoinNumber + offset]);
                 Debug.Console(2, this, "Linked Mic {0} Status Feedback at {1}", i.Index, joinMap.LocalStatus.JoinNumber + offset);
@@ -567,15 +580,6 @@ namespace pdt_shureMXW_epi
             }
             PrivacyModeOn();
         }
-
-        #endregion
-
-        #region IPrivacy Members
-
-        #endregion
-
-        #region IPrivacy Members
-
 
         #endregion
     }

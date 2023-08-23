@@ -85,12 +85,22 @@ namespace pdt_shureMXW_epi.Bridge.JoinMap
                 JoinType = eJoinType.Analog
             });
 
-        [JoinName("BatteryLevel")]
-        public JoinDataComplete BatteryLevel =
+        [JoinName("BatteryLevelRaw")]
+        public JoinDataComplete BatteryLevelRaw =
+            new JoinDataComplete(new JoinData { JoinNumber = 5, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "Mic Battery level 0-65535",
+                JoinCapabilities = eJoinCapabilities.ToSIMPL,
+                JoinType = eJoinType.Analog
+            });
+
+        [JoinName("BatteryLevelPercentage")]
+        public JoinDataComplete BatteryLevelPercentage =
             new JoinDataComplete(new JoinData { JoinNumber = 3, JoinSpan = 1 },
             new JoinMetadata
             {
-                Description = "Mic Battery level",
+                Description = "Mic Battery level 0-100%",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Analog
             });
@@ -100,7 +110,7 @@ namespace pdt_shureMXW_epi.Bridge.JoinMap
             new JoinDataComplete(new JoinData { JoinNumber = 4, JoinSpan = 1 },
             new JoinMetadata
             {
-                Description = "Mic Battery level",
+                Description = "Mic Battery Status",
                 JoinCapabilities = eJoinCapabilities.ToSIMPL,
                 JoinType = eJoinType.Analog
             });

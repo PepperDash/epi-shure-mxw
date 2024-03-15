@@ -15,7 +15,24 @@ namespace pdt_shureMXW_epi.Bridge.JoinMap
         {
 
         }
-
+        [JoinName("SetAllMicsToMute")]
+        public JoinDataComplete SetAllMicsToMute =
+            new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "SetAllMicsToMute",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital
+            });
+        [JoinName("SetAllMicsToActive")]
+        public JoinDataComplete SetAllMicsToActive =
+            new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 },
+            new JoinMetadata
+            {
+                Description = "SetAllMicsToActive",
+                JoinCapabilities = eJoinCapabilities.FromSIMPL,
+                JoinType = eJoinType.Digital
+            });
         [JoinName("IsOnline")]
         public JoinDataComplete IsOnline =
             new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 },

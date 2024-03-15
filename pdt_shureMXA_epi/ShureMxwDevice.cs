@@ -263,7 +263,7 @@ namespace pdt_shureMXW_epi
 
                     if (attribute == "BUTTON_STS")
                     {
-                        var buttonStatus = dataChunks.Last() == "ON";
+                        var buttonStatus = dataChunks[4] == "ON";
                         MicPress[index] = buttonStatus;
                         MicPressFeedback[index].FireUpdate();
                         MicAnyPressFeedback.FireUpdate();
@@ -522,6 +522,12 @@ namespace pdt_shureMXW_epi
 
                 MicLowBatteryWarningFeedback[i.Index].LinkInputSig(trilist.BooleanInput[joinMap.LowBatteryWarning.JoinNumber + offset]);
                 Debug.Console(2, this, "Linked Mic {0} Battery Warning Feedback at {1}", i.Index, joinMap.LowBatteryWarning.JoinNumber + offset);
+
+                MicOnChargerFeedback[i.Index].LinkInputSig(trilist.BooleanInput[joinMap.OnCharger.JoinNumber + offset]);
+                Debug.Console(2, this, "Linked Mic {0} On Charger Feedback at {1}", i.Index, joinMap.OnCharger.JoinNumber + offset);
+
+                trilist.SetSigTrueAction((uint)joinMap.SetAllMicsToMute.JoinNumber + offset, () => SetStatus(2));
+                trilist.SetSigTrueAction((uint)joinMap.SetAllMicsToActive.JoinNumber + offset, () => SetStatus(1));
 
                 MicOnChargerFeedback[i.Index].LinkInputSig(trilist.BooleanInput[joinMap.OnCharger.JoinNumber + offset]);
                 Debug.Console(2, this, "Linked Mic {0} On Charger Feedback at {1}", i.Index, joinMap.OnCharger.JoinNumber + offset);

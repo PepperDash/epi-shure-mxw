@@ -13,7 +13,7 @@ using Crestron.SimplSharpPro.DeviceSupport;
 
 namespace pdt_shureMXW_epi
 {
-    public class ShureMxwDevice : EssentialsBridgeableDevice, IPrivacy
+    public class ShureMxwDevice : EssentialsBridgeableDevice, IPrivacy, ICommunicationMonitor
     {
         public Properties Props { get; private set; }
 
@@ -79,7 +79,9 @@ namespace pdt_shureMXW_epi
 
         public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
-        public GenericCommunicationMonitor CommunicationMonitor { get; private set; }
+        private GenericCommunicationMonitor _communicationMonitor;
+
+        public StatusMonitorBase CommunicationMonitor { get { return _communicationMonitor; } }
 
         int CautionThreshold { get; set; }
 
@@ -113,7 +115,7 @@ namespace pdt_shureMXW_epi
             PortGather = new CommunicationGather(Communication, ">");
             PortGather.LineReceived += LineReceived;
 
-            CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 15000, 180000, 300000, DoPoll);
+            _communicationMonitor = new GenericCommunicationMonitor(this, Communication, 15000, 180000, 300000, DoPoll);
 
             Init();
         }
@@ -206,7 +208,7 @@ namespace pdt_shureMXW_epi
         public override void Initialize()
         {
             Communication.Connect();
-            CommunicationMonitor.Start();
+            _communicationMonitor.Start();
         }
 
         #endregion
@@ -480,7 +482,7 @@ namespace pdt_shureMXW_epi
                 bridge.AddJoinMap(Key, joinMap);
             }
 
-            CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
+            _communicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
             Debug.Console(2, this, "Linked Online at {0}", joinMap.IsOnline);
 
             ErrorFeedback.LinkInputSig(trilist.StringInput[joinMap.ErrorString.JoinNumber]);

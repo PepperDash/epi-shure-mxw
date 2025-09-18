@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pdt_shureMXW_epi", "pdt_shureMXA_epi\pdt_shureMXW_epi.csproj", "{6A3D8CAB-4995-46DF-8C67-EA2372848B07}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pdt_shureMXW_epi", "scr\pdt_shureMXW_epi.csproj", "{6A3D8CAB-4995-46DF-8C67-EA2372848B07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

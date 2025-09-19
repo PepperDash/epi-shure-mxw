@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-using Crestron.SimplSharp.Reflection;
-using PepperDash.Essentials.Core;
+﻿using PepperDash.Essentials.Core;
 
-namespace pdt_shureMXW_epi.Bridge.JoinMap
+namespace PepperDash.Essentials.Plugin.Shure.Mxw
 {
-    public class ShureMxwDeviceJoinMap : JoinMapBaseAdvanced
+    public class ShureMxwJoinMap : JoinMapBaseAdvanced
     {
-        public ShureMxwDeviceJoinMap(uint joinStart)
-            : base(joinStart, typeof(ShureMxwDeviceJoinMap))
+        public ShureMxwJoinMap(uint joinStart)
+            : base(joinStart, typeof(ShureMxwJoinMap))
         {
 
         }

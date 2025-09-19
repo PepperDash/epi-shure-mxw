@@ -1,21 +1,19 @@
-﻿using System;
+﻿using Crestron.SimplSharp;
+using Crestron.SimplSharpPro.DeviceSupport;
+using PepperDash.Core;
+using PepperDash.Core.Logging;
+using PepperDash.Essentials.Core;
+using Serilog.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Crestron.SimplSharp;
-using Newtonsoft.Json.Linq;
-using pdt_shureMXW_epi.Bridge.JoinMap;
-using PepperDash.Core;
-using PepperDash.Essentials.Core;
-using Newtonsoft.Json;
-using PepperDash.Essentials.Core.Config;
-using Crestron.SimplSharpPro.DeviceSupport;
 
 
-namespace pdt_shureMXW_epi
+namespace PepperDash.Essentials.Plugin.Shure.Mxw
 {
     public class ShureMxwDevice : EssentialsBridgeableDevice, IPrivacy, ICommunicationMonitor
     {
-        public Properties Props { get; private set; }
+        public ShureMxwConfigProperties Props { get; private set; }
 
         public readonly List<Mic> Mics;
         public Dictionary<int, bool> MicEnable;
@@ -88,7 +86,7 @@ namespace pdt_shureMXW_epi
         int WarningThreshold { get; set; }
 
 
-        public ShureMxwDevice(string key, string name, IBasicCommunication comm, Properties dc)
+        public ShureMxwDevice(string key, string name, IBasicCommunication comm, ShureMxwConfigProperties dc)
             : base(key, name)
         {
             var dc1 = dc;
@@ -161,7 +159,7 @@ namespace pdt_shureMXW_epi
             foreach (var item in Mics)
             {
                 var i = item;
-                Debug.Console(2, this, "This Mic's name is {0}", i.Name);
+                this.LogVerbose($"This Mic's name is {i.Name}");
 
                 MicStatus.Add(i.Index, 0);
                 MicStatusFeedback.Add(i.Index, new IntFeedback(() => MicStatus[i.Index]));
@@ -215,7 +213,7 @@ namespace pdt_shureMXW_epi
 
         void LineReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
-            //Debug.Console(2, this, "RX: '{0}'", args.Text);
+            //this.LogVerbose($"This Mic's name is {args.Text}");
             try
             {
                 var data = args.Text;
@@ -231,7 +229,7 @@ namespace pdt_shureMXW_epi
 
                     if (Props.Mics.All(kvp => kvp.Value.Index != index))
                     {
-                        Debug.Console(1, this, "Not configure for mic at index {0}", index);
+                        this.LogDebug($"Not configure for mic at index {index}");
                         return;
                     }
 
@@ -282,7 +280,7 @@ namespace pdt_shureMXW_epi
             }
             catch (Exception e)
             {
-                Debug.Console(1, this,Debug.ErrorLogLevel.Error, "Exception in LineReceived : {0}", e.Message);
+                this.LogError($"Exception in LineReceived : {e.Message}");
             }
         }
 
@@ -347,7 +345,7 @@ namespace pdt_shureMXW_epi
                 return;
             }
             
-            Debug.Console(1, this, "Battery Percentage: {0} | Warning Threshold: {1} | Caution Threshold: {2}", MicBatteryLevelPercentage[data], WarningThreshold, CautionThreshold);
+            this.LogDebug($"Battery Percentage: {MicBatteryLevelPercentage[data]} | Warning Threshold: {WarningThreshold} | Caution Threshold: {CautionThreshold}");
 
             if (MicBatteryLevelPercentage[data] <= WarningThreshold)
             {
@@ -428,7 +426,7 @@ namespace pdt_shureMXW_epi
 
         private void CommandManager(string text)
         {
-            Debug.Console(2, this, "TX : '{0}'", text);
+            this.LogVerbose($"TX : '{text}'");
             Communication.SendText(text);
         }
 
@@ -465,17 +463,17 @@ namespace pdt_shureMXW_epi
             ON_CHARGER = 4,
         }
 
-        private List<Mic> ListConvert(Dictionary<string, MicDict> dict)
+        private List<Mic> ListConvert(Dictionary<string, Mics> dict)
         {
             return (from outletDict in dict let key = outletDict.Key let value = outletDict.Value select new Mic(key, value)).ToList();
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, PepperDash.Essentials.Core.Bridges.EiscApiAdvanced bridge)
         {
-            var joinMap = new ShureMxwDeviceJoinMap(joinStart);
+            var joinMap = new ShureMxwJoinMap(joinStart);
 
-            Debug.Console(0, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
-            Debug.Console(0, this, "There are {0} Mic", Mics.Count());
+            this.LogInformation($"Linking to Trilist '{trilist.ID.ToString("X")}'");
+            this.LogInformation($"There are {Mics.Count()} Mic");
 
             if (bridge != null)
             {
@@ -483,7 +481,7 @@ namespace pdt_shureMXW_epi
             }
 
             _communicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline.JoinNumber]);
-            Debug.Console(2, this, "Linked Online at {0}", joinMap.IsOnline);
+            this.LogVerbose($"Linked Online at {joinMap.IsOnline}");
 
             ErrorFeedback.LinkInputSig(trilist.StringInput[joinMap.ErrorString.JoinNumber]);
 
@@ -497,42 +495,42 @@ namespace pdt_shureMXW_epi
                 var i = item;
                 var offset = (uint)((i.Index - 1) * 5);
 
-                Debug.Console(2, this, "Mic Channel {0} Connect", i.Index);
+                this.LogVerbose($"Mic Channel {i.Index} Connect");
 
                 trilist.BooleanInput[(joinMap.Enabled.JoinNumber + offset)].BoolValue = i.Enabled;
-                Debug.Console(2, this, "Linked Mic {0} Enabled at {1}", i.Index, joinMap.Enabled.JoinNumber + offset);
+                this.LogVerbose($"Linked Mic {i.Index} Enabled at {joinMap.Enabled.JoinNumber + offset}");
                 MicEnableFeedback[i.Index].LinkInputSig(trilist.BooleanInput[joinMap.Enabled.JoinNumber + offset]);
 
                 trilist.StringInput[(joinMap.Name.JoinNumber + offset)].StringValue = this.MicNames[i.Index];
-                Debug.Console(2, this, "Linked Mic {0} Name at {1}", i.Index, joinMap.Name.JoinNumber + offset);
+                this.LogVerbose($"Linked Mic {i.Index} Name at {joinMap.Name.JoinNumber + offset}");
                 MicNamesFeedback[i.Index].LinkInputSig(trilist.StringInput[joinMap.Name.JoinNumber + offset]);
 
                 MicBatteryLevelPercentageFeedback[i.Index].LinkInputSig(trilist.UShortInput[joinMap.BatteryLevelPercentage.JoinNumber + offset]);
-                Debug.Console(2, this, "Linked Mic {0} Battery Level Feedback at {1}", i.Index, joinMap.BatteryLevelPercentage.JoinNumber + offset);
+                this.LogVerbose($"Linked Mic {i.Index} Battery Level Feedback at {joinMap.BatteryLevelPercentage.JoinNumber + offset}");
 
                 MicBatteryLevelRawFeedback[i.Index].LinkInputSig(trilist.UShortInput[joinMap.BatteryLevelRaw.JoinNumber + offset]);
-                Debug.Console(2, this, "Linked Mic {0} Battery Level Feedback at {1}", i.Index, joinMap.BatteryLevelPercentage.JoinNumber + offset);
+                this.LogVerbose($"Linked Mic {i.Index} Battery Level Feedback at {joinMap.BatteryLevelPercentage.JoinNumber + offset}");
 
                 MicStatusFeedback[i.Index].LinkInputSig(trilist.UShortInput[joinMap.LocalStatus.JoinNumber + offset]);
-                Debug.Console(2, this, "Linked Mic {0} Status Feedback at {1}", i.Index, joinMap.LocalStatus.JoinNumber + offset);
+                this.LogVerbose($"Linked Mic {i.Index} Status Feedback at {joinMap.LocalStatus.JoinNumber + offset}");
 
                 MicLowBatteryStatusFeedback[i.Index].LinkInputSig(trilist.UShortInput[joinMap.BatteryStatus.JoinNumber + offset]);
-                Debug.Console(2, this, "Linked Mic {0} Battery Status Feedback at {1}", i.Index, joinMap.BatteryStatus.JoinNumber + offset);
+                this.LogVerbose($"Linked Mic {i.Index} Battery Status Feedback at {joinMap.BatteryStatus.JoinNumber + offset}");
 
                 MicLowBatteryCautionFeedback[i.Index].LinkInputSig(trilist.BooleanInput[joinMap.LowBatteryCaution.JoinNumber + offset]);
-                Debug.Console(2, this, "Linked Mic {0} Battery Caution Feedback at {1}", i.Index, joinMap.LowBatteryCaution.JoinNumber + offset);
+                this.LogVerbose($"Linked Mic {i.Index} Battery Caution Feedback at {joinMap.LowBatteryCaution.JoinNumber + offset}");
 
                 MicLowBatteryWarningFeedback[i.Index].LinkInputSig(trilist.BooleanInput[joinMap.LowBatteryWarning.JoinNumber + offset]);
-                Debug.Console(2, this, "Linked Mic {0} Battery Warning Feedback at {1}", i.Index, joinMap.LowBatteryWarning.JoinNumber + offset);
+                this.LogVerbose($"Linked Mic {i.Index} Battery Warning Feedback at {joinMap.LowBatteryWarning.JoinNumber + offset}");
 
                 MicOnChargerFeedback[i.Index].LinkInputSig(trilist.BooleanInput[joinMap.OnCharger.JoinNumber + offset]);
-                Debug.Console(2, this, "Linked Mic {0} On Charger Feedback at {1}", i.Index, joinMap.OnCharger.JoinNumber + offset);
+                this.LogVerbose($"Linked Mic {i.Index} On Charger Feedback at {joinMap.OnCharger.JoinNumber + offset}");
 
                 trilist.SetSigTrueAction((uint)joinMap.SetAllMicsToMute.JoinNumber + offset, () => SetStatus(2));
                 trilist.SetSigTrueAction((uint)joinMap.SetAllMicsToActive.JoinNumber + offset, () => SetStatus(1));
 
                 MicOnChargerFeedback[i.Index].LinkInputSig(trilist.BooleanInput[joinMap.OnCharger.JoinNumber + offset]);
-                Debug.Console(2, this, "Linked Mic {0} On Charger Feedback at {1}", i.Index, joinMap.OnCharger.JoinNumber + offset);
+                this.LogVerbose($"Linked Mic {i.Index} On Charger Feedback at {joinMap.OnCharger.JoinNumber + offset}");
 
                 MicEnableFeedback[i.Index].LinkInputSig(trilist.BooleanInput[joinMap.OnChargerFbEnable.JoinNumber + offset]);
 

@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
-using PepperDash.Core;
+﻿using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Config;
+using Serilog.Events;
+using System.Collections.Generic;
 
-namespace pdt_shureMXW_epi
+namespace PepperDash.Essentials.Plugin.Shure.Mxw
 {
     public class ShureMxwFactory : EssentialsPluginDeviceFactory<ShureMxwDevice>
     {
@@ -23,18 +24,18 @@ namespace pdt_shureMXW_epi
 
             if (comms == null)
             {
-                Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to create comms for device {0}", dc.Key);
+                Debug.LogMessage(LogEventLevel.Information, "Unable to create comms for device {0}", this);
                 return null;
             }
 
-            var config = dc.Properties.ToObject<Properties>();
+            var config = dc.Properties.ToObject<ShureMxwConfigProperties>();
 
             if (config != null)
             {
                 return new ShureMxwDevice(dc.Key, dc.Name, comms, config);
             }
 
-            Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to deserialize config for device {0}", dc.Key);
+            Debug.LogMessage(LogEventLevel.Information, "Unable to deserialize config for device {0}", this);
             return null;
         }
 

@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using PepperDash.Core;
+using System.Collections.Generic;
 
-namespace pdt_shureMXW_epi
+namespace PepperDash.Essentials.Plugin.Shure.Mxw
 {
-    public class Properties
+    public class ShureMxwConfigProperties
     {
         public ControlPropertiesConfig Control { get; set; }
 
@@ -13,7 +13,7 @@ namespace pdt_shureMXW_epi
         [JsonProperty("warningThreshold")]
         public int WarningThreshold { get; set; }
         [JsonProperty("mics")]
-        public Dictionary<string, MicDict> Mics { get; set; }
+        public Dictionary<string, Mics> Mics { get; set; }
     }
 
     public class Mic : IKeyed
@@ -23,7 +23,7 @@ namespace pdt_shureMXW_epi
         public bool Enabled { get; set; }
         public string Name { get; set; }
 
-        public Mic(string key, MicDict mic)
+        public Mic(string key, Mics mic)
         {
             Key = key;
             Index = mic.Index;
@@ -32,7 +32,7 @@ namespace pdt_shureMXW_epi
         }
     }
 
-    public class MicDict
+    public class Mics
     {
         [JsonProperty("index")]
         public int Index { get; set; }

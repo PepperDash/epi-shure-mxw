@@ -103,3 +103,82 @@ version.
 ```
 
 > note: Caution Threshold and Warning Threshold use the Percentage value to determine state
+<!-- START Minimum Essentials Framework Versions -->
+### Minimum Essentials Framework Versions
+
+- 1.6.6
+<!-- END Minimum Essentials Framework Versions -->
+<!-- START Supported Types -->
+
+<!-- END Supported Types -->
+<!-- START Join Maps -->
+### Join Maps
+
+#### Digitals
+
+| Join | Type (RW) | Description |
+| --- | --- | --- |
+| 1 | R | SetAllMicsToMute |
+| 2 | R | SetAllMicsToActive |
+| 1 | R | Device Online |
+| 2 | R | Mic Enabled |
+| 3 | R | Mic Low Battery Caution |
+| 4 | R | Mic Low Battery Warning |
+| 5 | R | Mic On Charger |
+| 6 | R | Mic On Charger Feedback Enable |
+| 48 | R | Any Button WasPressed |
+
+#### Analogs
+
+| Join | Type (RW) | Description |
+| --- | --- | --- |
+| 2 | R | Mic Status |
+| 5 | R | Mic Battery level 0-65535 |
+| 3 | R | Mic Battery level 0-100% |
+| 4 | R | Mic Battery Status |
+
+#### Serials
+
+| Join | Type (RW) | Description |
+| --- | --- | --- |
+| 2 | R | Mic Name |
+| 50 | R | Device Name Name |
+| 1 | R | Aggregate ErrorString |
+<!-- END Join Maps -->
+<!-- START Interfaces Implemented -->
+### Interfaces Implemented
+
+- IPrivacy
+- ICommunicationMonitor
+- IKeyed
+<!-- END Interfaces Implemented -->
+<!-- START Base Classes -->
+### Base Classes
+
+- EssentialsBridgeableDevice
+- JoinMapBaseAdvanced
+<!-- END Base Classes -->
+<!-- START Public Methods -->
+### Public Methods
+
+- public void SetStatus(int data)
+- public void SetStatus(int index, int data)
+- public void PrivacyModeOff()
+- public void PrivacyModeOn()
+- public void PrivacyModeToggle()
+<!-- END Public Methods -->
+<!-- START Bool Feedbacks -->
+### Bool Feedbacks
+
+- MicAnyPressFeedback
+- PrivacyModeIsOnFeedback
+<!-- END Bool Feedbacks -->
+<!-- START Int Feedbacks -->
+
+<!-- END Int Feedbacks -->
+<!-- START String Feedbacks -->
+### String Feedbacks
+
+- NameFeedback
+- ErrorFeedback
+<!-- END String Feedbacks -->
